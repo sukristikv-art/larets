@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ларец — маркетплейс объявлений</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+:root{--green:#43A047;--dark:#1e2a20;--bg:#f4f7f4;--card:#fff;--txt:#22301f;--mut:#7a8a7c}
+body{background:var(--bg);color:var(--txt)}
+.hdr{background:var(--dark);position:sticky;top:0;z-index:10}
+.hdr-in{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:22px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap}
+.logo b{color:var(--green)}
+.srch{flex:1;display:flex;min-width:180px}
+.srch input{flex:1;border:none;border-radius:8px 0 0 8px;padding:9px 12px;font-size:14px;outline:none}
+.srch button{background:var(--green);color:#fff;border:none;border-radius:0 8px 8px 0;padding:9px 14px;font-size:14px;cursor:pointer}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nb{background:transparent;color:#b8c9ba;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.nb:hover{background:rgba(255,255,255,.1);color:#fff}
+.nb.pr{background:var(--green);border-color:var(--green);color:#fff}
+.nb{position:relative}
+.badge{position:absolute;top:-7px;right:-7px;background:#e53935;color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;line-height:17px;text-align:center;border-radius:9px;padding:0 4px;display:none;animation:bp .3s ease}
+.badge.show{display:block}
+@keyframes bp{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.ib-item{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid #e2e8e4;border-radius:10px;margin-bottom:8px;cursor:pointer}
+.ib-item:hover{border-color:var(--green)}
+.ib-dot{width:9px;height:9px;border-radius:99px;background:#e53935;flex-shrink:0;display:none}
+.ib-item.unread .ib-dot{display:block}
+.ib-info{flex:1;min-width:0}
+.ib-name{font-size:13px;font-weight:700}
+.ib-title{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib-cnt{background:#e53935;color:#fff;font-size:10px;font-weight:700;border-radius:9px;padding:2px 7px;flex-shrink:0}
+.burger{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.mob{display:none;background:var(--dark);padding:8px 16px 14px;flex-direction:column;gap:6px}
+.mob.open{display:flex}
+.mob .nb{width:100%;text-align:center}
+.demo{background:#fef3c7;color:#92400e;text-align:center;font-size:13px;padding:7px 16px}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 50px}
+.pg{display:none}.pg.active{display:block}
+.hero{background:linear-gradient(120deg,var(--dark),var(--green));border-radius:14px;color:#fff;padding:28px 24px;margin-bottom:18px}
+.hero h1{font-size:24px;margin-bottom:5px}.hero p{opacity:.9;font-size:14px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:5px;margin-bottom:16px}
+.chip{background:var(--card);border:1px solid #dde5dd;border-radius:99px;padding:7px 14px;font-size:13px;color:var(--mut);white-space:nowrap;cursor:pointer}
+.chip:hover{border-color:var(--green);color:var(--green)}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.cd{background:var(--card);border:1px solid #e2e8e4;border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s}
+.cd:hover{box-shadow:0 4px 14px rgba(0,0,0,.1);transform:translateY(-2px)}
+.cd-ph{height:150px;display:flex;align-items:center;justify-content:center;font-size:52px;background:#e8f5e9;overflow:hidden}
+.cd-ph img{width:100%;height:100%;object-fit:cover}
+.cd-b{padding:11px 13px 13px}
+.cd-pr{font-size:17px;font-weight:700;color:var(--dark)}
+.cd-t{font-size:13px;margin:3px 0 5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cd-m{font-size:11px;color:var(--mut)}
+.empty{grid-column:1/-1;text-align:center;padding:50px 0;color:var(--mut)}
+.back{background:none;border:none;color:var(--green);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.il{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
+.pnl{background:var(--card);border:1px solid #e2e8e4;border-radius:12px;padding:18px;margin-bottom:14px}
+.ip{border-radius:12px;height:300px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:100px;overflow:hidden}
+.ip img{width:100%;height:100%;object-fit:contain}
+.itp{font-size:26px;font-weight:800;color:var(--dark)}
+.itt{font-size:18px;font-weight:700;margin:5px 0}
+.itm{font-size:12px;color:var(--mut);margin-bottom:12px}
+.itd{font-size:13px;white-space:pre-line}
+.btn{display:inline-block;background:var(--green);color:#fff;border:none;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;width:100%;text-align:center}
+.btn:hover{background:#388E3C}
+.btn-o{background:none;color:var(--green);border:2px solid var(--green)}
+.btn-o:hover{background:#e8f5e9}
+.btn-d{background:none;color:#dc2626;border:2px solid #dc2626;width:auto;padding:7px 12px;font-size:12px}
+.btn-d:hover{background:#fef2f2}
+.btn-s{width:auto;padding:7px 12px;font-size:12px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fd{display:flex;flex-direction:column;gap:4px}
+.fd.fl{grid-column:1/-1}
+.fd label{font-size:12px;font-weight:600;color:var(--mut)}
+.fd input,.fd select,.fd textarea{border:2px solid #e2e8e4;border-radius:9px;padding:9px 11px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.fd input:focus,.fd select:focus,.fd textarea:focus{border-color:var(--green)}
+.fd textarea{resize:vertical;min-height:100px}
+.ppv{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ppi{position:relative;width:76px;height:76px;border-radius:9px;overflow:hidden;border:1px solid #e2e8e4}
+.ppi img{width:100%;height:100%;object-fit:cover}
+.ppd{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:99px;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:1;cursor:pointer}
+.ah{display:flex;gap:14px;align-items:center;margin-bottom:18px}
+.av{width:56px;height:56px;border-radius:99px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
+.mr{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid #e2e8e4;border-radius:12px;padding:11px;margin-bottom:9px;flex-wrap:wrap}
+.mp{width:56px;height:56px;border-radius:9px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden}
+.mp img{width:100%;height:100%;object-fit:cover}
+.mi{flex:1;min-width:130px}
+.mt{font-weight:600;font-size:13px}
+.mm{font-size:11px;color:var(--mut);margin-top:2px}
+.mpr{font-weight:800;font-size:15px;white-space:nowrap}
+.ma{display:flex;gap:6px}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;align-items:center;justify-content:center;padding:14px}
+.ov.open{display:flex}
+.md{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;position:relative}
+.md h3{font-size:17px;margin-bottom:14px}
+.mc{position:absolute;top:10px;right:10px;background:none;border:none;font-size:18px;color:var(--mut);cursor:pointer}
+.asw{text-align:center;font-size:12px;color:var(--mut);margin-top:12px}
+.asw a{color:var(--green);font-weight:600;cursor:pointer}
+.cm{max-width:460px;display:flex;flex-direction:column}
+.cms{height:280px;overflow-y:auto;border:1px solid #e2e8e4;border-radius:9px;padding:10px;margin-bottom:10px;background:var(--bg);display:flex;flex-direction:column;gap:7px}
+.cmb{max-width:78%;padding:7px 11px;border-radius:11px;font-size:13px;background:#fff;border:1px solid #e2e8e4}
+.cmb.me{align-self:flex-end;background:#e8f5e9;border-color:var(--green)}
+.cmb .ct{display:block;font-size:10px;color:var(--mut);margin-top:2px}
+.cmi{display:flex;gap:7px}
+.cmi input{flex:1;border:2px solid #e2e8e4;border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none}
+.cmi input:focus{border-color:var(--green)}
+.cmi button{background:var(--green);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-size:15px;cursor:pointer}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e2a20;color:#fff;padding:11px 20px;border-radius:11px;font-size:13px;opacity:0;transition:.25s;z-index:30;pointer-events:none;max-width:88%}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.ft{border-top:1px solid #e2e8e4;background:var(--card);padding:20px 16px;text-align:center;font-size:12px;color:var(--mut)}
+@media(max-width:700px){
+.srch{display:none}.nav .dk{display:none}.burger{display:block}
+.il{grid-template-columns:1fr}.ip{height:220px;font-size:70px}
+.fg{grid-template-columns:1fr}.grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px}
+.cd-ph{height:105px;font-size:38px}.hero h1{font-size:19px}
+}
+</style>
+</head>
+<body>
+<header class="hdr">
+<div class="hdr-in">
+<div class="logo" onclick="go('home')">Ла<b>рец</b></div>
+<div class="srch"><input id="q" placeholder="Поиск…" onkeydown="if(event.key==='Enter')doSearch()"><button onclick="doSearch()">Найти</button></div>
+<nav class="nav">
+<button class="nb dk" onclick="go('home')">Главная</button>
+<button class="nb dk" onclick="openAdmin()">✉ Админу</button>
+<button class="nb dk" id="navMsg" style="display:none" onclick="openInbox()">✉ Сообщения<span class="badge" id="msgBadge">0</span></button>
+<button class="nb pr" onclick="go('post')">+ Подать</button>
+<span id="authBox"></span>
+<button class="burger" onclick="toggleMob()">☰</button>
+</nav>
+</div>
+<div class="mob" id="mobMenu">
+<div class="srch" style="display:flex;min-width:0"><input id="qM" placeholder="Поиск…" onkeydown="if(event.key==='Enter')doSearch(true)"><button onclick="doSearch(true)">Найти</button></div>
+<button class="nb" onclick="go('home');toggleMob()">Главная</button>
+<button class="nb" onclick="openAdmin();toggleMob()">✉ Админу</button>
+<button class="nb" id="navMsgM" style="display:none" onclick="openInbox();toggleMob()">✉ Сообщения<span class="badge" id="msgBadgeM">0</span></button>
+<span id="authBoxM"></span>
+</div>
+</header>
+<div class="wrap">
+<section id="pg-home" class="pg active">
+<div class="hero"><h1>Ларец — покупай и продавай по всей Беларуси</h1><p>Тысячи объявлений: техника, транспорт, недвижимость, вещи для дома и детства.</p></div>
+<div class="chips" id="chips"></div>
+<div class="grid" id="grid"></div>
+</section>
+<section id="pg-item" class="pg">
+<button class="back" onclick="go('home')">← Назад</button>
+<div class="il">
+<div><div class="ip" id="iPh"></div><div class="pnl" style="margin-top:14px"><h3 style="font-size:15px;margin-bottom:8px">Описание</h3><div class="itd" id="iDesc"></div></div></div>
+<div>
+<div class="pnl"><div class="itp" id="iPr"></div><div class="itt" id="iTi"></div><div class="itm" id="iMe"></div><button class="btn" style="margin-bottom:7px" onclick="showPhone()">📞 Показать телефон</button><button class="btn btn-o" style="width:100%" onclick="openChat()">✉ Написать продавцу</button></div>
+<div class="pnl"><h3 style="font-size:15px;margin-bottom:8px">Продавец</h3><div id="iSel" style="font-size:13px"></div></div>
+</div>
+</div>
+</section>
+<section id="pg-post" class="pg">
+<div class="pnl" style="max-width:680px;margin:0 auto">
+<h3 style="font-size:18px;margin-bottom:14px">Подать объявление</h3>
+<form id="pf" onsubmit="return submitPost(event)">
+<div class="fg">
+<div class="fd fl"><label>Название *</label><input name="title" required placeholder="Например: iPhone 13, 128 ГБ"></div>
+<div class="fd"><label>Цена, BYN *</label><input name="price" type="text" inputmode="numeric" required placeholder="150"></div>
+<div class="fd"><label>Категория *</label><select name="category" required><option value="">Выберите</option><option value="electronics">Электроника</option><option value="transport">Транспорт</option><option value="realty">Недвижимость</option><option value="home">Для дома</option><option value="hobby">Хобби и спорт</option><option value="kids">Детям</option><option value="work">Работа и услуги</option></select></div>
+<div class="fd"><label>Город *</label><select name="city" required><option value="">Выберите</option><option>Минск</option><option>Гомель</option><option>Брест</option><option>Витебск</option><option>Могилёв</option><option>Гродно</option></select></div>
+<div class="fd"><label>Состояние</label><select name="condition"><option>Б/у</option><option>Новое</option><option>Услуга</option></select></div>
+<div class="fd fl"><label>Телефон</label><input name="phone" type="tel" placeholder="+375 (29) 123-45-67"></div>
+<div class="fd fl"><label>Фото (до 8)</label><input type="file" id="phIn" accept="image/*" multiple onchange="addPhotos(this)"><div class="ppv" id="phPrev"></div></div>
+<div class="fd fl"><label>Описание</label><textarea name="description" placeholder="Состояние, комплект, причина продажи…"></textarea></div>
+<div class="fd fl"><button class="btn" type="submit">Опубликовать</button></div>
+</div>
+</form>
+</div>
+</section>
+<section id="pg-acc" class="pg">
+<div class="ah"><div class="av" id="aAv">Я</div><div><div style="font-size:17px;font-weight:700" id="aName">Кабинет</div><div style="font-size:12px;color:var(--mut)" id="aEmail"></div></div></div>
+<h3 style="font-size:15px;margin-bottom:10px">Мои объявления</h3>
+<div id="myList"></div>
+</section>
+</div>
+<footer class="ft">© 2025 ООО «Ларец». Все права защищены.</footer>
+<div class="ov" id="mAuth"><div class="md"><button class="mc" onclick="closeM('mAuth')">×</button><h3 id="aTitle">Вход</h3><form onsubmit="return doAuth(event)"><div class="fd fl" id="aNameF" style="display:none;margin-bottom:10px"><label>Имя</label><input id="aNameI" placeholder="Иван Иванов"></div><div class="fd fl" style="margin-bottom:10px"><label>Email *</label><input id="aEmailI" type="email" required placeholder="you@mail.com"></div><div class="fd fl" style="margin-bottom:14px"><label>Пароль * (мин. 6)</label><input id="aPassI" type="password" minlength="6" required placeholder="••••••"></div><button class="btn" type="submit" id="aBtn">Войти</button></form><div class="asw" id="aSw">Нет аккаунта? <a onclick="swAuth()">Регистрация</a></div></div></div>
+<div class="ov" id="mAdmin"><div class="md"><button class="mc" onclick="closeM('mAdmin')">×</button><h3>✉ Написать админу</h3><p style="font-size:12px;color:var(--mut);margin-bottom:12px">Вопрос, жалоба или предложение? Напишите — ответим на email или в чат.</p><form onsubmit="return sendAdmin(event)"><div class="fd fl" style="margin-bottom:10px"><label>Имя *</label><input id="adName" required placeholder="Как к вам обращаться"></div><div class="fd fl" style="margin-bottom:10px"><label>Email/телефон *</label><input id="adContact" required placeholder="you@mail.com или +375…"></div><div class="fd fl" style="margin-bottom:14px"><label>Сообщение *</label><textarea id="adText" required placeholder="Опишите вопрос…"></textarea></div><button class="btn" type="submit">Отправить</button></form></div></div>
+<div class="ov" id="mChat"><div class="md cm"><button class="mc" onclick="closeChat()">×</button><h3 id="chTitle">Чат</h3><div class="cms" id="chMsgs"></div><div class="cmi"><input id="chIn" placeholder="Сообщение…" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">➤</button></div></div></div>
+<div class="ov" id="mEdit"><div class="md" style="max-width:480px"><button class="mc" onclick="closeM('mEdit')">×</button><h3>Редактировать объявление</h3><form onsubmit="return saveEdit(event)"><input type="hidden" id="edId"><div class="fd fl" style="margin-bottom:10px"><label>Название *</label><input id="edTitle" required></div><div class="fd fl" style="margin-bottom:10px"><label>Цена, BYN *</label><input id="edPrice" required inputmode="numeric"></div><div class="fd fl" style="margin-bottom:10px"><label>Категория *</label><select id="edCat" required><option value="electronics">Электроника</option><option value="transport">Транспорт</option><option value="realty">Недвижимость</option><option value="home">Для дома</option><option value="hobby">Хобби и спорт</option><option value="kids">Детям</option><option value="work">Работа и услуги</option></select></div><div class="fd fl" style="margin-bottom:10px"><label>Город *</label><select id="edCity" required><option>Минск</option><option>Гомель</option><option>Брест</option><option>Витебск</option><option>Могилёв</option><option>Гродно</option></select></div><div class="fd fl" style="margin-bottom:10px"><label>Состояние</label><select id="edCond"><option>Б/у</option><option>Новое</option><option>Услуга</option></select></div><div class="fd fl" style="margin-bottom:10px"><label>Телефон</label><input id="edPhone" type="tel"></div><div class="fd fl" style="margin-bottom:14px"><label>Описание</label><textarea id="edDesc"></textarea></div><button class="btn" type="submit">Сохранить изменения</button></form></div></div>
+<div class="ov" id="mInbox"><div class="md" style="max-width:460px"><button class="mc" onclick="closeM('mInbox')">×</button><h3>✉ Сообщения</h3><div id="inboxList" style="max-height:420px;overflow-y:auto"></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===== Конфигурация Supabase ===== */
+var SUPABASE_URL='https://rbfxxxhtmttqtwntptoq.supabase.co';
+var SUPABASE_ANON_KEY='sb_publishable_vj4aEyE3ZJt8dkTuWS7qzg_L63V-vpn';
+var sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+var user=null,profile=null,LIST=[],curCat='all',curItem=null,photos=[];
+var chatPeer=null,chatTimer=null,authMode='login';
+
+var CATS=[['all','Все'],['electronics','Электроника'],['transport','Транспорт'],['realty','Недвижимость'],['home','Для дома'],['hobby','Хобби и спорт'],['kids','Детям'],['work','Работа и услуги']];
+var CATN={electronics:'Электроника',transport:'Транспорт',realty:'Недвижимость',home:'Для дома',hobby:'Хобби и спорт',kids:'Детям',work:'Работа и услуги'};
+var CATE={electronics:'📱',transport:'🚗',realty:'🏠',home:'🛋️',hobby:'🎸',kids:'🧸',work:'🔧'};
+
+/* ===== Утилиты ===== */
+function $(id){return document.getElementById(id)}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
+function fmtPrice(k){var r=Math.round((k||0)/100);return r.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' BYN'}
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2600)}
+function openM(id){$(id).classList.add('open')}
+function closeM(id){$(id).classList.remove('open')}
+function go(pg){document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active')});$('pg-'+pg).classList.add('active');window.scrollTo(0,0)}
+function toggleMob(){$('mobMenu').classList.toggle('open')}
+
+/* ===== Категории и поиск ===== */
+function renderChips(){$('chips').innerHTML=CATS.map(function(c){return '<button class="chip'+(curCat===c[0]?' on':'')+'" onclick="setCat(\''+c[0]+'\')">'+c[1]+'</button>'}).join('')}
+function setCat(c){curCat=c;renderChips();renderGrid()}
+function doSearch(mob){if(mob){$('q').value=$('qM').value}else{$('qM').value=$('q').value}go('home');renderGrid()}
+
+/* ===== Авторизация ===== */
+function renderAuthUI(){
+ var h;
+ if(user){
+  var nm=(profile&&profile.full_name)?profile.full_name:(user.email||'Кабинет');
+  h='<button class="nb" onclick="go(\'acc\');loadAcc()">👤 '+esc(nm.split(' ')[0])+'</button><button class="nb" onclick="logout()">Выйти</button>';
+ }else{
+  h='<button class="nb" onclick="openAuth()">Вход</button>';
+ }
+ $('authBox').innerHTML=h;
+ $('authBoxM').innerHTML=h;
+ if(typeof updateNavMsg==='function')updateNavMsg();
+}
+function openAuth(){authMode='login';$('aTitle').textContent='Вход';$('aNameF').style.display='none';$('aBtn').textContent='Войти';$('aSw').innerHTML='Нет аккаунта? <a onclick="swAuth()">Регистрация</a>';openM('mAuth')}
+function swAuth(){
+ if(authMode==='login'){authMode='reg';$('aTitle').textContent='Регистрация';$('aNameF').style.display='flex';$('aBtn').textContent='Зарегистрироваться';$('aSw').innerHTML='Уже есть аккаунт? <a onclick="swAuth()">Вход</a>'}
+ else{authMode='login';$('aTitle').textContent='Вход';$('aNameF').style.display='none';$('aBtn').textContent='Войти';$('aSw').innerHTML='Нет аккаунта? <a onclick="swAuth()">Регистрация</a>'}
+}
+async function doAuth(e){
+ e.preventDefault();
+ var em=$('aEmailI').value.trim(),pw=$('aPassI').value,nm=$('aNameI').value.trim();
+ $('aBtn').disabled=true;
+ try{
+  if(authMode==='reg'){
+   var r=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm}}});
+   if(r.error)throw r.error;
+   if(!r.data.session){toast('Регистрация успешна! Проверьте почту для подтверждения адреса.');closeM('mAuth');return false}
+   toast('Добро пожаловать!');
+  }else{
+   var r2=await sb.auth.signInWithPassword({email:em,password:pw});
+   if(r2.error)throw r2.error;
+   toast('Вы вошли в аккаунт');
+  }
+  closeM('mAuth');
+  await loadSession();renderAuthUI();
+ }catch(err){toast(err.message||'Ошибка авторизации')}
+ $('aBtn').disabled=false;
+ return false;
+}
+async function logout(){await sb.auth.signOut();user=null;profile=null;renderAuthUI();go('home');toast('Вы вышли из аккаунта')}
+async function loadSession(){
+ var r=await sb.auth.getSession();
+ user=r.data&&r.data.session?r.data.session.user:null;
+ profile=null;
+ if(user){var p=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();profile=p.data}
+}
+</script>
+<script>
+/* ===== Объявления из БД ===== */
+async function loadList(){
+ try{
+  var r=await sb.from('listings').select('*,listing_images(url,sort_order)').eq('is_active',true).order('created_at',{ascending:false}).limit(100);
+  if(r.error)throw r.error;
+  LIST=(r.data||[]).map(function(x){
+   var imgs=(x.listing_images||[]).slice().sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0)}).map(function(i){return i.url});
+   return {id:x.id,title:x.title,desc:x.description||'',kopecks:x.price_kopecks,cat:x.category,city:x.city,cond:x.condition||'Б/у',phone:x.phone||'',seller:x.seller_name||'Продавец',sellerId:x.seller_id,date:new Date(x.created_at).toLocaleDateString('ru-RU'),img:imgs[0]||'',imgs:imgs};
+  });
+ }catch(e){toast('Не удалось загрузить объявления: '+e.message);LIST=[]}
+}
+function filtered(){
+ var q=($('q').value||'').toLowerCase().trim();
+ return LIST.filter(function(l){
+  var okC=curCat==='all'||l.cat===curCat;
+  var okQ=!q||l.title.toLowerCase().indexOf(q)>=0||l.desc.toLowerCase().indexOf(q)>=0||l.city.toLowerCase().indexOf(q)>=0;
+  return okC&&okQ;
+ });
+}
+function renderGrid(){
+ var arr=filtered(),g=$('grid');
+ if(!arr.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">😔 Ничего не найдено.<br>Попробуйте изменить запрос или подайте своё объявление!</div>';return}
+ g.innerHTML=arr.map(function(l){
+  var ph=l.img?'<img src="'+esc(l.img)+'" alt="'+esc(l.title)+'">':'<span>'+(CATE[l.cat]||'📦')+'</span>';
+  return '<div class="cd" onclick="openItem(\''+l.id+'\')"><div class="cd-ph">'+ph+'</div><div class="cd-b"><div class="cd-pr">'+fmtPrice(l.kopecks)+'</div><div class="cd-t">'+esc(l.title)+'</div><div class="cd-m">📍 '+esc(l.city)+' · '+l.date+'</div></div></div>';
+ }).join('');
+}
+
+/* ===== Страница объявления ===== */
+function openItem(id){
+ var l=LIST.find(function(x){return x.id===id});
+ if(!l){toast('Объявление не найдено');return}
+ curItem=l;
+ var gal=l.imgs.length?'<img src="'+esc(l.imgs[0])+'" alt="фото">':'<span>'+(CATE[l.cat]||'📦')+'</span>';
+ $('iPh').innerHTML=gal;
+ $('iTi').textContent=l.title;
+ $('iPr').textContent=fmtPrice(l.kopecks);
+ $('iMe').innerHTML='📍 '+esc(l.city)+' · 🏷️ '+esc(CATN[l.cat]||l.cat)+' · 📦 '+esc(l.cond)+' · 🕐 '+l.date;
+ $('iDesc').textContent=l.desc||'Описание отсутствует.';
+ $('iSel').innerHTML='<b>'+esc(l.seller)+'</b><div id="iPh2" style="margin-top:5px;color:var(--mut)">Телефон скрыт — нажмите «Показать телефон»</div>'+(user&&l.sellerId===user.id?'<div style="margin-top:6px;font-size:12px;color:var(--green)">Это ваше объявление</div>':'');
+ go('item');
+}
+function closeItem(){go('home')}
+function showPhone(){
+ if(!curItem)return;
+ var el=$('iPh2');
+ if(!el)return;
+ if(curItem.phone){el.textContent='📞 '+curItem.phone;el.style.color='var(--dark)';el.style.fontWeight='700'}
+ else{el.textContent='Продавец не указал телефон — напишите ему в чат'}
+}
+
+/* ===== Чат ===== */
+function openChat(){
+ if(!user){toast('Войдите, чтобы написать продавцу');openAuth();return}
+ if(!curItem)return;
+ chatPeer={id:curItem.sellerId,name:curItem.seller};
+ $('chTitle').textContent='Чат с '+chatPeer.name+' · '+curItem.title;
+ openM('mChat');
+ loadChat();
+ if(chatTimer)clearInterval(chatTimer);
+ chatTimer=setInterval(loadChat,5000);
+}
+function closeChat(){if(chatTimer)clearInterval(chatTimer);chatTimer=null;closeM('mChat')}
+async function loadChat(){
+ if(!chatPeer||!curItem||!user)return;
+ try{
+  var r=await sb.from('messages').select('*').eq('type','chat').eq('listing_id',curItem.id).order('created_at',{ascending:true}).limit(200);
+  if(r.error)throw r.error;
+  var msgs=(r.data||[]).filter(function(m){
+   return (m.sender_id===user.id&&m.recipient_id===chatPeer.id)||(m.sender_id===chatPeer.id&&m.recipient_id===user.id);
+  });
+  var box=$('chMsgs');
+  box.innerHTML=msgs.length?msgs.map(function(m){
+   var mine=m.sender_id===user.id;
+   return '<div class="cmb'+(mine?' me':'')+'">'+esc(m.body)+'<span class="ct">'+new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</span></div>';
+  }).join(''):'<div style="text-align:center;padding:20px 0;font-size:12px;color:var(--mut)">Сообщений пока нет — напишите первым!</div>';
+  box.scrollTop=box.scrollHeight;
+  if(typeof markChatRead==='function')markChatRead(chatPeer.id,curItem.id);
+ }catch(e){}
+}
+function sendChat(e){
+ if(e&&e.preventDefault)e.preventDefault();
+ var txt=$('chIn').value.trim();
+ if(!txt||!chatPeer||!curItem||!user)return false;
+ $('chIn').value='';
+ sb.from('messages').insert({type:'chat',listing_id:curItem.id,sender_id:user.id,recipient_id:chatPeer.id,body:txt}).then(function(r){
+  if(r.error){toast('Не удалось отправить: '+r.error.message);return}
+  loadChat();
+ });
+ return false;
+}
+</script>
+<script>
+/* ===== Фото: превью и загрузка в Storage ===== */
+function addPhotos(input){
+ var files=Array.from(input.files||[]);
+ files.forEach(function(f){
+  if(photos.length>=8){toast('Максимум 8 фото');return}
+  if(!f.type.match(/^image\//))return;
+  photos.push(f);
+ });
+ input.value='';
+ renderPhotoPrev();
+}
+function rmPhoto(i){photos.splice(i,1);renderPhotoPrev()}
+function renderPhotoPrev(){
+ var box=$('phPrev');
+ if(!photos.length){box.innerHTML='';return}
+ box.innerHTML=photos.map(function(f,i){
+  var u=URL.createObjectURL(f);
+  return '<div class="ppi"><img src="'+u+'" alt="фото"><button type="button" class="ppd" onclick="rmPhoto('+i+')">×</button></div>';
+ }).join('');
+}
+async function uploadPhotos(listingId){
+ var urls=[];
+ for(var i=0;i<photos.length;i++){
+  var f=photos[i];
+  var ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  var path=user.id+'/'+Date.now()+'-'+i+'.'+ext;
+  var up=await sb.storage.from('listing-photos').upload(path,f,{contentType:f.type,upsert:false});
+  if(up.error){toast('Ошибка загрузки фото: '+up.error.message);continue}
+  var pub=sb.storage.from('listing-photos').getPublicUrl(path);
+  urls.push(pub.data.publicUrl);
+ }
+ if(urls.length){
+  var rows=urls.map(function(u,i){return {listing_id:listingId,url:u,sort_order:i}});
+  var ins=await sb.from('listing_images').insert(rows);
+  if(ins.error)toast('Фото загружены, но не привязались: '+ins.error.message);
+ }
+}
+
+/* ===== Подача объявления ===== */
+async function submitPost(e){
+ e.preventDefault();
+ if(!user){toast('Войдите, чтобы подать объявление');openAuth();return false}
+ var f=e.target;
+ var title=f.title.value.trim(),priceTxt=f.price.value.replace(/[^0-9.,]/g,'').replace(',','.'),cat=f.category.value,city=f.city.value,cond=f.condition.value,phone=f.phone.value.trim(),desc=f.description.value.trim();
+ if(!title||!cat||!city){toast('Заполните обязательные поля');return false}
+ var price=Math.round(parseFloat(priceTxt||'0')*100);
+ if(isNaN(price)||price<0){toast('Некорректная цена');return false}
+ var btn=f.querySelector('button[type="submit"]');
+ btn.disabled=true;btn.textContent='Публикация…';
+ try{
+  var nm=(profile&&profile.full_name)?profile.full_name:(user.email||'Продавец');
+  var r=await sb.from('listings').insert({seller_id:user.id,seller_name:nm,title:title,description:desc,price_kopecks:price,category:cat,city:city,condition:cond,phone:phone,is_active:true}).select('id').single();
+  if(r.error)throw r.error;
+  if(photos.length){await uploadPhotos(r.data.id)}
+  photos=[];renderPhotoPrev();f.reset();
+  toast('Объявление опубликовано! 🎉');
+  await loadList();renderGrid();
+  go('home');
+ }catch(err){toast('Ошибка публикации: '+err.message)}
+ btn.disabled=false;btn.textContent='Опубликовать';
+ return false;
+}
+
+/* ===== Личный кабинет ===== */
+async function loadAcc(){
+ if(!user){toast('Войдите в аккаунт');openAuth();go('home');return}
+ var nm=(profile&&profile.full_name)?profile.full_name:(user.email||'Пользователь');
+ $('aAv').textContent=nm.charAt(0).toUpperCase();
+ $('aName').textContent=nm;
+ $('aEmail').textContent=user.email||'';
+ var box=$('myList');
+ box.innerHTML='<div style="color:var(--mut);font-size:13px;padding:20px 0">Загрузка…</div>';
+ try{
+  var r=await sb.from('listings').select('*,listing_images(url,sort_order)').eq('seller_id',user.id).order('created_at',{ascending:false});
+  if(r.error)throw r.error;
+  var mine=r.data||[];
+  if(!mine.length){box.innerHTML='<div style="text-align:center;padding:34px 0;color:var(--mut);font-size:13px">У вас пока нет объявлений.<br><br><button class="btn btn-s" onclick="go(\'post\')">+ Подать первое</button></div>';return}
+  box.innerHTML=mine.map(function(x){
+   var imgs=(x.listing_images||[]).slice().sort(function(a,b){return (a.sort_order||0)-(b.sort_order||0)}).map(function(i){return i.url});
+   var ph=imgs[0]?'<img src="'+esc(imgs[0])+'" alt="">':(CATE[x.category]||'📦');
+   var st=x.is_active?'<span style="color:var(--green);font-weight:700">Активно</span>':'<span style="color:var(--mut)">Снято</span>';
+   return '<div class="mr"><div class="mp">'+ph+'</div><div class="mi"><div class="mt">'+esc(x.title)+'</div><div class="mm">'+esc(x.city)+' · '+new Date(x.created_at).toLocaleDateString('ru-RU')+' · '+st+'</div></div><div class="mpr">'+fmtPrice(x.price_kopecks)+'</div><div class="ma"><button class="btn btn-s" onclick="openEdit(\''+x.id+'\')">✏️</button><button class="btn btn-d" onclick="delItem(\''+x.id+'\')">Удалить</button></div></div>';
+  }).join('');
+ }catch(err){box.innerHTML='<div style="color:#dc2626;font-size:13px">Ошибка загрузки: '+esc(err.message)+'</div>'}
+}
+
+/* ===== Редактирование и удаление ===== */
+async function openEdit(id){
+ try{
+  var r=await sb.from('listings').select('*').eq('id',id).maybeSingle();
+  if(r.error||!r.data){toast('Объявление не найдено');return}
+  var x=r.data;
+  $('edId').value=x.id;
+  $('edTitle').value=x.title||'';
+  $('edPrice').value=Math.round((x.price_kopecks||0)/100);
+  $('edCat').value=x.category||'electronics';
+  $('edCity').value=x.city||'Минск';
+  $('edCond').value=x.condition||'Б/у';
+  $('edPhone').value=x.phone||'';
+  $('edDesc').value=x.description||'';
+  openM('mEdit');
+ }catch(err){toast('Ошибка: '+err.message)}
+}
+async function saveEdit(e){
+ e.preventDefault();
+ if(!user)return false;
+ var id=$('edId').value;
+ var priceTxt=$('edPrice').value.replace(/[^0-9.,]/g,'').replace(',','.');
+ var price=Math.round(parseFloat(priceTxt||'0')*100);
+ if(isNaN(price)||price<0){toast('Некорректная цена');return false}
+ try{
+  var r=await sb.from('listings').update({title:$('edTitle').value.trim(),price_kopecks:price,category:$('edCat').value,city:$('edCity').value,condition:$('edCond').value,phone:$('edPhone').value.trim(),description:$('edDesc').value.trim()}).eq('id',id).eq('seller_id',user.id);
+  if(r.error)throw r.error;
+  closeM('mEdit');
+  toast('Изменения сохранены');
+  await loadList();renderGrid();loadAcc();
+ }catch(err){toast('Ошибка сохранения: '+err.message)}
+ return false;
+}
+async function delItem(id){
+ if(!user)return;
+ if(!confirm('Удалить это объявление? Действие необратимо.'))return;
+ try{
+  var r=await sb.from('listings').delete().eq('id',id).eq('seller_id',user.id);
+  if(r.error)throw r.error;
+  toast('Объявление удалено');
+  await loadList();renderGrid();loadAcc();
+ }catch(err){toast('Ошибка удаления: '+err.message)}
+}
+
+/* ===== Форма «Написать админу» ===== */
+function openAdmin(){openM('mAdmin')}
+async function sendAdmin(e){
+ e.preventDefault();
+ var nm=$('adName').value.trim(),ct=$('adContact').value.trim(),tx=$('adText').value.trim();
+ if(!nm||!ct||!tx){toast('Заполните все поля');return false}
+ var body='[Админу] От: '+nm+' ('+ct+')\n'+tx;
+ try{
+  var r=await sb.from('messages').insert({type:'admin',sender_id:user?user.id:null,body:body});
+  if(r.error)throw r.error;
+  $('adText').value='';
+  closeM('mAdmin');
+  toast('Отправлено! Ответим на '+ct);
+ }catch(err){toast('Ошибка отправки: '+err.message)}
+ return false;
+}
+
+/* ===== Инициализация ===== */
+(async function(){
+ renderChips();
+ try{await loadSession()}catch(e){user=null;profile=null}
+ renderAuthUI();
+ if(typeof updateNavMsg==='function')updateNavMsg();
+ if(typeof refreshUnread==='function')refreshUnread();
+ if(typeof initMsgRealtime==='function')initMsgRealtime();
+ await loadList();
+ renderGrid();
+ document.querySelectorAll('.ov').forEach(function(o){o.addEventListener('click',function(ev){if(ev.target===o){o.classList.remove('open');if(o.id==='mChat')closeChat()}})});
+ document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){document.querySelectorAll('.ov.open').forEach(function(o){o.classList.remove('open')});closeChat()}});
+ sb.auth.onAuthStateChange(function(){loadSession().then(function(){renderAuthUI()})});
+})();
+</script>
+<script>
+/* ===== Непрочитанные сообщения: бейдж, входящие, realtime ===== */
+function updateNavMsg(){var d=user?'':'none';$('navMsg').style.display=d;$('navMsgM').style.display=d;if(!user)setBadge(0)}
+async function refreshUnread(){
+ if(!user){setBadge(0);return}
+ try{
+  var r=await sb.from('messages').select('id').eq('type','chat').eq('recipient_id',user.id).eq('is_read',false);
+  if(r.error)throw r.error;
+  setBadge((r.data||[]).length);
+ }catch(e){}
+}
+function setBadge(n){
+ ['msgBadge','msgBadgeM'].forEach(function(id){
+  var b=$(id);if(!b)return;
+  b.textContent=n>99?'99+':n;
+  if(n>0)b.classList.add('show');else b.classList.remove('show');
+ });
+}
+async function markChatRead(peerId,listingId){
+ if(!user||!peerId)return;
+ try{
+  var q=sb.from('messages').update({is_read:true}).eq('type','chat').eq('recipient_id',user.id).eq('sender_id',peerId).eq('is_read',false);
+  if(listingId)q=q.eq('listing_id',listingId);
+  await q;
+ }catch(e){}
+ refreshUnread();
+}
+async function openInbox(){
+ if(!user){toast('Войдите, чтобы смотреть сообщения');openAuth();return}
+ openM('mInbox');
+ var box=$('inboxList');
+ box.innerHTML='<div style="color:var(--mut);font-size:13px;padding:20px 0">Загрузка…</div>';
+ try{
+  var r=await sb.from('messages').select('*').eq('type','chat').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id).order('created_at',{ascending:false}).limit(300);
+  if(r.error)throw r.error;
+  var msgs=r.data||[];
+  if(!msgs.length){box.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--mut);font-size:13px">Сообщений пока нет</div>';return}
+  var convs={};
+  msgs.forEach(function(m){
+   var peerId=m.sender_id===user.id?m.recipient_id:m.sender_id;
+   var key=peerId+'|'+(m.listing_id||'');
+   if(!convs[key])convs[key]={peerId:peerId,listingId:m.listing_id,last:m.body,lastAt:m.created_at,unread:0};
+   if(m.recipient_id===user.id&&!m.is_read)convs[key].unread++;
+  });
+  var arr=Object.keys(convs).map(function(k){return convs[k]});
+  var peerIds=[],listIds=[];
+  arr.forEach(function(c){if(c.peerId&&peerIds.indexOf(c.peerId)<0)peerIds.push(c.peerId);if(c.listingId&&listIds.indexOf(c.listingId)<0)listIds.push(c.listingId)});
+  var names={},titles={};
+  if(peerIds.length){var pr=await sb.from('profiles').select('id,full_name').in('id',peerIds);(pr.data||[]).forEach(function(p){names[p.id]=p.full_name})}
+  if(listIds.length){var lr=await sb.from('listings').select('id,title').in('id',listIds);(lr.data||[]).forEach(function(l){titles[l.id]=l.title})}
+  arr.sort(function(a,b){return new Date(b.lastAt)-new Date(a.lastAt)});
+  box.innerHTML=arr.map(function(c,i){
+   var nm=names[c.peerId]||'Пользователь';
+   var ti=titles[c.listingId]||'Объявление';
+   return '<div class="ib-item'+(c.unread?' unread':'')+'" onclick="openInboxChat('+i+')">'+
+    '<span class="ib-dot"></span><div class="ib-info"><div class="ib-name">'+esc(nm)+'</div><div class="ib-title">'+esc(ti)+' · '+esc(c.last)+'</div></div>'+
+    (c.unread?'<span class="ib-cnt">'+c.unread+'</span>':'')+'</div>';
+  }).join('');
+  window._ibConvs=arr;window._ibNames=names;window._ibTitles=titles;
+ }catch(e){box.innerHTML='<div style="color:#dc2626;font-size:13px">Ошибка загрузки: '+esc(e.message)+'</div>'}
+}
+function openInboxChat(i){
+ var c=(window._ibConvs||[])[i];if(!c)return;
+ closeM('mInbox');
+ var l=LIST.find(function(x){return x.id===c.listingId});
+ var pn=(window._ibNames||{})[c.peerId]||'Пользователь';
+ curItem=l||{id:c.listingId,title:(window._ibTitles||{})[c.listingId]||'Объявление',sellerId:c.peerId,seller:pn};
+ chatPeer={id:c.peerId,name:pn};
+ $('chTitle').textContent='Чат с '+chatPeer.name+' · '+curItem.title;
+ openM('mChat');
+ loadChat();
+ if(chatTimer)clearInterval(chatTimer);
+ chatTimer=setInterval(loadChat,5000);
+}
+function initMsgRealtime(){
+ sb.channel('msg-badge').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},function(p){
+  if(p.new&&p.new.type==='chat'&&user&&p.new.recipient_id===user.id){
+   refreshUnread();
+   var chatOpen=chatTimer&&chatPeer&&chatPeer.id===p.new.sender_id;
+   if(!chatOpen)toast('💬 Новое сообщение');
+  }
+ }).subscribe();
+}
+</script>
+<script>
+/* ===== Совместимость: альтернативные имена обработчиков ===== */
+function navigate(pg){go(pg);if(pg==='acc')loadAcc()}
+function filterListings(arg){if(typeof arg==='string'&&(arg==='all'||CATN[arg])){setCat(arg)}else{doSearch(false)}}
+function openListing(id){openItem(id)}
+function closeListing(){go('home')}
+function openSubmit(){if(!user){toast('Войдите, чтобы подать объявление');openAuth();return}go('post')}
+function handleSubmit(e){return submitPost(e)}
+function switchAuth(){swAuth()}
+function openCabinet(){go('acc');loadAcc()}
+function closeCabinet(){go('home')}
+function openAdminModal(){openAdmin()}
+function closeAdminModal(){closeM('mAdmin')}
+function closeModal(id){closeM(id);if(id==='mChat')closeChat()}
+function toggleMobileMenu(){toggleMob()}
+</script>
+</body>
+</html>
