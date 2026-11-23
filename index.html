@@ -45,13 +45,15 @@ body{background:var(--bg);color:var(--txt)}
 .chip:hover{border-color:var(--green);color:var(--green)}
 .chip.on{background:var(--green);border-color:var(--green);color:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.cd{background:var(--card);border:1px solid #e2e8e4;border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s}
-.cd:hover{box-shadow:0 4px 14px rgba(0,0,0,.1);transform:translateY(-2px)}
-.cd-ph{height:150px;display:flex;align-items:center;justify-content:center;font-size:52px;background:#e8f5e9;overflow:hidden}
+.cd{background:var(--card);border:1px solid #e2e8e4;border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s;position:relative}
+.cd:hover{box-shadow:0 6px 18px rgba(0,0,0,.12);transform:translateY(-2px)}
+.cd-ph{height:185px;display:flex;align-items:center;justify-content:center;font-size:56px;background:#e8f5e9;overflow:hidden}
 .cd-ph img{width:100%;height:100%;object-fit:cover}
-.cd-b{padding:11px 13px 13px}
-.cd-pr{font-size:17px;font-weight:700;color:var(--dark)}
-.cd-t{font-size:13px;margin:3px 0 5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fav{position:absolute;top:9px;right:9px;z-index:2;width:34px;height:34px;border-radius:99px;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.18);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;padding:0}
+.fav:hover{transform:scale(1.12)}
+.cd-b{padding:12px 14px 14px}
+.cd-pr{font-size:19px;font-weight:800;color:var(--green);letter-spacing:-.2px}
+.cd-t{font-size:14px;font-weight:600;line-height:1.35;margin:4px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cd-m{font-size:11px;color:var(--mut)}
 .empty{grid-column:1/-1;text-align:center;padding:50px 0;color:var(--mut)}
 .back{background:none;border:none;color:var(--green);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px}
@@ -114,7 +116,7 @@ body{background:var(--bg);color:var(--txt)}
 .srch{display:none}.nav .dk{display:none}.burger{display:block}
 .il{grid-template-columns:1fr}.ip{height:220px;font-size:70px}
 .fg{grid-template-columns:1fr}.grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px}
-.cd-ph{height:105px;font-size:38px}.hero h1{font-size:19px}
+.cd-ph{height:125px;font-size:40px}.cd-pr{font-size:16px}.cd-t{font-size:13px}.hero h1{font-size:19px}
 }
 </style>
 </head>
@@ -178,6 +180,8 @@ body{background:var(--bg);color:var(--txt)}
 <div class="ah"><div class="av" id="aAv">Я</div><div><div style="font-size:17px;font-weight:700" id="aName">Кабинет</div><div style="font-size:12px;color:var(--mut)" id="aEmail"></div></div></div>
 <h3 style="font-size:15px;margin-bottom:10px">Мои объявления</h3>
 <div id="myList"></div>
+<h3 style="font-size:15px;margin:22px 0 10px">❤️ Избранное</h3>
+<div id="favList"></div>
 </section>
 </div>
 <footer class="ft">© 2025 ООО «Ларец». Все права защищены.</footer>
@@ -288,7 +292,8 @@ function renderGrid(){
  if(!arr.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">😔 Ничего не найдено.<br>Попробуйте изменить запрос или подайте своё объявление!</div>';return}
  g.innerHTML=arr.map(function(l){
   var ph=l.img?'<img src="'+esc(l.img)+'" alt="'+esc(l.title)+'">':'<span>'+(CATE[l.cat]||'📦')+'</span>';
-  return '<div class="cd" onclick="openItem(\''+l.id+'\')"><div class="cd-ph">'+ph+'</div><div class="cd-b"><div class="cd-pr">'+fmtPrice(l.kopecks)+'</div><div class="cd-t">'+esc(l.title)+'</div><div class="cd-m">📍 '+esc(l.city)+' · '+l.date+'</div></div></div>';
+  var isF=isFav(l.id);
+  return '<div class="cd" onclick="openItem(\''+l.id+'\')"><button class="fav" title="В избранное" onclick="toggleFav(event,\''+l.id+'\')">'+(isF?'❤️':'🤍')+'</button><div class="cd-ph">'+ph+'</div><div class="cd-b"><div class="cd-pr">'+fmtPrice(l.kopecks)+'</div><div class="cd-t">'+esc(l.title)+'</div><div class="cd-m">📍 '+esc(l.city)+' · '+l.date+'</div></div></div>';
  }).join('');
 }
 
@@ -427,6 +432,7 @@ async function loadAcc(){
  $('aAv').textContent=nm.charAt(0).toUpperCase();
  $('aName').textContent=nm;
  $('aEmail').textContent=user.email||'';
+ renderFav();
  var box=$('myList');
  box.innerHTML='<div style="color:var(--mut);font-size:13px;padding:20px 0">Загрузка…</div>';
  try{
@@ -604,6 +610,30 @@ function initMsgRealtime(){
 }
 </script>
 <script>
+/* ===== Избранное (localStorage, без изменения БД) ===== */
+function getFav(){try{return JSON.parse(localStorage.getItem('larets_fav')||'[]')}catch(e){return[]}}
+function saveFav(a){try{localStorage.setItem('larets_fav',JSON.stringify(a))}catch(e){}}
+function isFav(id){return getFav().indexOf(id)>=0}
+function toggleFav(ev,id){
+ if(ev){ev.stopPropagation();ev.preventDefault()}
+ var a=getFav(),i=a.indexOf(id);
+ if(i>=0){a.splice(i,1);toast('Удалено из избранного')}
+ else{a.push(id);toast('❤️ Добавлено в избранное')}
+ saveFav(a);
+ renderGrid();
+ if($('pg-acc').classList.contains('active'))renderFav();
+}
+function renderFav(){
+ var box=$('favList');if(!box)return;
+ var ids=getFav();
+ var arr=LIST.filter(function(l){return ids.indexOf(l.id)>=0});
+ if(!arr.length){box.innerHTML='<div style="color:var(--mut);font-size:13px;padding:14px 0">В избранном пока пусто. Нажмите 🤍 на карточке товара, чтобы добавить его сюда.</div>';return}
+ box.innerHTML=arr.map(function(l){
+  var ph=l.img?'<img src="'+esc(l.img)+'" alt="">':(CATE[l.cat]||'📦');
+  return '<div class="mr"><div class="mp">'+ph+'</div><div class="mi"><div class="mt">'+esc(l.title)+'</div><div class="mm">📍 '+esc(l.city)+' · '+l.date+'</div></div><div class="mpr">'+fmtPrice(l.kopecks)+'</div><div class="ma"><button class="btn btn-s" onclick="openItem(\''+l.id+'\')">Открыть</button><button class="btn btn-d" onclick="toggleFav(null,\''+l.id+'\')">✕</button></div></div>';
+ }).join('');
+}
+
 /* ===== Совместимость: альтернативные имена обработчиков ===== */
 function navigate(pg){go(pg);if(pg==='acc')loadAcc()}
 function filterListings(arg){if(typeof arg==='string'&&(arg==='all'||CATN[arg])){setCat(arg)}else{doSearch(false)}}
